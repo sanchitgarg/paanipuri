@@ -9,3 +9,28 @@ paanipuri.xcodeproj/xcuserdata/
 paanipuri/thirdparty/soil/CMakeFiles
 paanipuri/thirdparty/soil/CMakeCache.txt
 paanipuri/thirdparty/soil/cmake_install.cmake
+
+# gitignore for C++
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Visual Studio Files
+Debug
+Release
+.vs
+*.suo
+*.csproj.user
+*.vbproj.user
+ipch
+*sdf
