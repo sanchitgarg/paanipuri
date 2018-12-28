@@ -9,3 +9,8 @@ paanipuri.xcodeproj/xcuserdata/
 paanipuri/thirdparty/soil/CMakeFiles
 paanipuri/thirdparty/soil/CMakeCache.txt
 paanipuri/thirdparty/soil/cmake_install.cmake
+
+.vs
+Externals
+x64
+*vcxproj.user
