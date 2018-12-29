@@ -4,9 +4,6 @@
 
 #include "pch.h"
 #include "Game.h"
-#include <random>
-#include <algorithm>
-#include <iterator>
 #include <glm/glm.hpp>
 
 extern void ExitGame();
@@ -16,13 +13,11 @@ using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
-static int numVertices = 0;
-glm::vec3 camEye = glm::vec3(0, 7, 150);
-glm::vec3 camDir = glm::vec3(0, -5, 0);
-glm::vec3 camUp = glm::vec3(0, -1, 0);
-float yaw1 = -90.0f;
-float pitch1 = 0.0f;
-
+const Vector3 defaultEye(0.0f, 0.0f, 50.0f);
+const Vector3 defaultDir(0.0f, 0.0f, -1.0f);
+Vector3 eye;
+Vector3 dir;
+float camMoveDelta = 0.1f;
 
 Game::Game() noexcept(false)
 {
@@ -87,14 +82,7 @@ void Game::Update(DX::StepTimer const& timer)
 {
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
-    // todo sangarg : These are the defaults from the project. The camera setup might need to be changed.
-    // Vector3 eye = Vector3(0.0f, 7.0f, 150.0f);
-    //Vector3 camDir = Vector3(0.0f, -5.0f, 0.0f);
-    
-    Vector3 eye(0.0f, 0.7f, 1.5f);
-    Vector3 at(0.0f, -0.1f, 0.0f);
-
-    m_view = Matrix::CreateLookAt(eye, at, Vector3::UnitY);
+    m_view = Matrix::CreateLookAt(eye, eye + dir, Vector3::UnitY);
 
     m_world = Matrix::CreateRotationY(float(timer.GetTotalSeconds() * XM_PIDIV4));
 
@@ -148,9 +136,32 @@ void Game::Update(DX::StepTimer const& timer)
     {
         ExitGame();
     }
+    else if (kb.W)
+    {
+        eye.y -= camMoveDelta;
+    }
+    else if (kb.S)
+    {
+        eye.y += camMoveDelta;
+    }
+    else if (kb.A)
+    {
+        eye.x += camMoveDelta;
+    }
+    else if (kb.D)
+    {
+        eye.x -= camMoveDelta;
+    }
+    else if (kb.R)
+    {
+        eye = defaultEye;
+        dir = defaultDir;
+    }
 
     auto mouse = m_mouse->GetState();
     mouse;
+
+    scene->update();
 
     PIXEndEvent();
 }
@@ -177,6 +188,10 @@ void Game::Render()
     const XMVECTORF32 xaxis = { 20.f, 0.f, 0.f };
     const XMVECTORF32 yaxis = { 0.f, 0.f, 20.f };
     DrawGrid(xaxis, yaxis, g_XMZero, 100, 100, Colors::White);
+    
+
+    // Draw the particles
+    // DrawParticles();
 
     // Set the descriptor heaps
     ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap(), m_states->Heap() };
@@ -221,60 +236,68 @@ void XM_CALLCONV Game::DrawGrid(FXMVECTOR xAxis, FXMVECTOR yAxis, FXMVECTOR orig
 
     m_batch->Begin(commandList);
 
-    int gridSize = 5;
-    // std::random_device rd;
-    // std::mt19937 g(rd());
-
-    // std::uniform_int_distribution<> dis(1, gridSize*gridSize*gridSize);
-
     std::vector<VertexPositionColor> vertices;
 
-    int count = 0;
-    float jump = 1.0f;
-    // int randomSize = dis(g);
+   /*int gridSize = 5;
+    float jump = 0.1f;
 
     float x = 0.0f, y = 0.0f, z = 0.0f;
 
-    for (x = -jump * gridSize; x <= jump * gridSize; x += jump)
+    for (x = -jump * gridSize; x <= jump * gridSize * 0.0f; x += jump)
     {
-        for (y = -jump * gridSize; y <= jump * gridSize; y += jump)
+        for (y = -jump * gridSize; y <= jump * gridSize * 0.0f; y += jump)
         {
-            for (z = -jump * gridSize; z <= jump * gridSize; z += jump)
+            for (z = -jump * gridSize; z <= jump * gridSize * 0.0f; z += jump)
             {
                 XMVECTORF32 v = { x, y, z };
                 vertices.push_back(VertexPositionColor(XMVectorAdd(origin, v), color));
-                ++count;
             }
         }
+    }*/
+
+    int s = scene->particleSystem->container.triangles.size();
+    for (int i = 0; i < s; ++i)
+    {
+        XMVECTORF32 v = { scene->particleSystem->container.triangles[i].x, scene->particleSystem->container.triangles[i].y, scene->particleSystem->container.triangles[i].z };
+        vertices.push_back(VertexPositionColor(v, color));
     }
 
-    // std::shuffle(vertices.begin(), vertices.end(), g);
+    for (int i = 0; i < s; ++i)
+    {
+        m_batch->DrawPoint(vertices[i]);
+    }
 
-    // std::vector<VertexPositionColor> v2;
-    // v2.reserve(randomSize);
-    // v2.assign(vertices.begin(), vertices.begin() + randomSize);
+    vertices.push_back(VertexPositionColor(origin, Colors::Red));
 
-    m_batch->DrawPoints(vertices);
+    for (int i = 0; i < vertices.size(); ++i)
+    {
+        m_batch->DrawPoint(vertices[i]);
+    }
 
     m_batch->End();
 
     PIXEndEvent(commandList);
 }
 
-void XM_CALLCONV Game::DrawPoint(FXMVECTOR position, GXMVECTOR color)
+void XM_CALLCONV Game::DrawParticles()
 {
     auto commandList = m_deviceResources->GetCommandList();
-    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Draw point");
+    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Draw Particles");
 
-    m_points->Begin(commandList);
+    m_lineEffect->Apply(commandList);
 
-    // const XMVECTORF32 point = { 0.f, 0.f, 0.f };
-    VertexPositionColor vPoint (position, color);
+    m_batch->Begin(commandList);
 
-    // m_points->DrawPoint(vPoint);
-    m_points->End();
+    std::vector<VertexPositionColor> vertices;
+
+    // Todo sangarg : Add code to populated vertices with the sim data
+
+    m_batch->DrawPoints(vertices);
+
+    m_batch->End();
 
     PIXEndEvent(commandList);
+
 }
 
 #pragma endregion
@@ -350,6 +373,11 @@ void Game::CreateDeviceDependentResources()
 
     m_batch = std::make_unique<PrimitiveBatch<VertexPositionColor>>(device);
     m_points = std::make_unique<PrimitiveBatch<VertexPositionColor>>(device);
+
+    scene = std::make_unique<Scene>();
+    scene->init();
+    eye = defaultEye;
+    dir = defaultDir;
 
     m_shape = GeometricPrimitive::CreateTeapot(4.f, 8);
 

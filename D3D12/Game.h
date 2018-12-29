@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "scene.h"
 #include "DeviceResources.h"
 #include "StepTimer.h"
 
@@ -49,7 +50,7 @@ private:
     void CreateWindowSizeDependentResources();
 
     void XM_CALLCONV DrawGrid(DirectX::FXMVECTOR xAxis, DirectX::FXMVECTOR yAxis, DirectX::FXMVECTOR origin, size_t xdivs, size_t ydivs, DirectX::GXMVECTOR color);
-    void XM_CALLCONV DrawPoint(DirectX::FXMVECTOR position, DirectX::GXMVECTOR color);
+    void XM_CALLCONV DrawParticles();
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
@@ -97,6 +98,8 @@ private:
     DirectX::SimpleMath::Matrix                                             m_world;
     DirectX::SimpleMath::Matrix                                             m_view;
     DirectX::SimpleMath::Matrix                                             m_projection;
+
+    std::unique_ptr <Scene> scene;
 
     // Descriptors
     enum Descriptors

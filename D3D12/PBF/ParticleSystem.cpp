@@ -225,7 +225,6 @@ void ParticleSystem::clearConstraints()
 //==========================
 void ParticleSystem::update()
 {
-    
     //run the parallel for from 0 to particles.size()
     parallel_for<size_t>(0, particles.size(), 1, [=](int i)
     {
@@ -677,7 +676,3 @@ void ParticleSystem::setRestPose(int groupID)
         particles.at(particleGroup.at(i)).setRestOffset(particles.at(particleGroup.at(i)).getPosition() - centerMassRest);
     }
 }
-
-
-
-

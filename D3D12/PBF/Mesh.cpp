@@ -11,7 +11,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
-
 //Reference : http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
 
 Mesh::MeshEntry::MeshEntry()
@@ -50,11 +49,12 @@ void Mesh::LoadMesh(const std::string& Filename)
 {
     // Release the previously loaded mesh (if it exists)
     Clear();
-    
+
     Assimp::Importer Importer;
     
     //change according to requirements
     const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+    OutputDebugStringA(Importer.GetErrorString());
     
     InitFromScene(pScene, Filename);
 }

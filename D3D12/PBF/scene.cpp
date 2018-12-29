@@ -104,12 +104,14 @@ void Scene::init(){
 //    addBallToScene();
 //    addParticlesToScene(1);
 //    addCubeToScene();
+
+
     particleSystem->setUpperBounds(cube->getCenter() + cube->getHalfDimensions());
     particleSystem->setLowerBounds(cube->getCenter() - cube->getHalfDimensions());
     particleSystem->setCellSize(cube->getCellSize());
     particleSystem->setForces(gravity);
     
-    std::string objPath = "../Paanipuri_Windows/Objects/GlassBowl.obj";
+    std::string objPath = "GlassBowl.obj";
     mesh.LoadMesh(objPath);
     
     particleSystem->loadContainer(mesh);

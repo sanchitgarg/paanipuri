@@ -59,8 +59,8 @@ private:
     std::map<int, std::vector<int>> hashGrid; //TODO: look in folly AtomicHashMap
     glm::ivec3 gridDim;
     
-    struct Container container;
-    
+    // struct Container container;
+
     //This will save the list of triangle indices that are in the particular grid.
     // first int maps from the 3D grid location to 1D data.
     std::map<int, std::vector<int> > containerGrid;
@@ -75,6 +75,8 @@ private:
     
 public:
     
+    struct Container container;
+
     typedef std::pair<int, glm::vec3> Neighbor;
     std::vector<glm::vec3> particlePosData;
     std::vector<glm::vec3> particleColData;
