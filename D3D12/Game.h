@@ -65,6 +65,7 @@ private:
 
     DirectX::GamePad::ButtonStateTracker        m_gamePadButtons;
     DirectX::Keyboard::KeyboardStateTracker     m_keyboardButtons;
+    DirectX::Keyboard::State                    m_previousKeyboardState;
 
     // DirectXTK objects.
     std::unique_ptr<DirectX::GraphicsMemory>                                m_graphicsMemory;

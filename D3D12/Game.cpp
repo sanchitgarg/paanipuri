@@ -18,6 +18,7 @@ const Vector3 defaultDir(0.0f, 0.0f, -1.0f);
 Vector3 eye;
 Vector3 dir;
 float camMoveDelta = 0.1f;
+bool keyTapped;
 
 Game::Game() noexcept(false)
 {
@@ -131,7 +132,7 @@ void Game::Update(DX::StepTimer const& timer)
 
     auto kb = m_keyboard->GetState();
     m_keyboardButtons.Update(kb);
-
+    
     if (kb.Escape)
     {
         ExitGame();
@@ -157,11 +158,37 @@ void Game::Update(DX::StepTimer const& timer)
         eye = defaultEye;
         dir = defaultDir;
     }
+    else if (kb.D1)
+    {
+        scene->addParticlesToScene(1);
+    }
+    else if (kb.D2)
+    {
+        scene->addParticlesToScene(2);
+    }
+    else if (kb.D3 && !m_previousKeyboardState.D3)
+    {
+        scene->addBallToScene();
+    }
+    else if (kb.D4 && !m_previousKeyboardState.D4)
+    {
+        scene->addCubeToScene();
+    }
+    else if (kb.D5)
+    {
+        scene->pourFluid(1);
+    }
+    else if (kb.D6)
+    {
+        scene->pourFluid(2);
+    }
 
     auto mouse = m_mouse->GetState();
     mouse;
 
     scene->update();
+
+    m_previousKeyboardState = kb;
 
     PIXEndEvent();
 }
@@ -187,11 +214,11 @@ void Game::Render()
     // Draw procedurally generated dynamic grid
     const XMVECTORF32 xaxis = { 20.f, 0.f, 0.f };
     const XMVECTORF32 yaxis = { 0.f, 0.f, 20.f };
-    DrawGrid(xaxis, yaxis, g_XMZero, 100, 100, Colors::White);
+    // DrawGrid(xaxis, yaxis, g_XMZero, 100, 100, Colors::White);
     
 
     // Draw the particles
-    // DrawParticles();
+    DrawParticles();
 
     // Set the descriptor heaps
     ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap(), m_states->Heap() };
@@ -291,6 +318,39 @@ void XM_CALLCONV Game::DrawParticles()
     std::vector<VertexPositionColor> vertices;
 
     // Todo sangarg : Add code to populated vertices with the sim data
+    std::vector<Particle> particles(scene->particleSystem->getAllParticles());
+
+    for (int i = 0; i < particles.size(); ++i)
+    {
+        Particle& p = particles[i];
+        XMVECTORF32 v = { p.position.x, p.position.y, p.position.z };
+        XMVECTORF32 c;
+
+        if (p.getPhase() == 1)
+        {
+            c = { 1.0,1.0,1.0 };
+        }
+        else if (p.getPhase() >= 2)
+        {
+            if (p.getPhase() % 4 == 0) { //sphere
+                c = { 1.0, 1.0, 0.0 };
+            }
+            else if (p.getPhase() % 2 == 0) { //sphere
+                c = { 1.0, 0.0, 0.0 };
+            }
+            else if ((p.getPhase() - 1) % 4 == 0) {  //cube
+                c = {1.0, 0.54901960784, 0.0};
+            }
+            else {
+                c = { 0.49803921568, 1.0, 0.0 };
+            }
+        }
+
+        vertices.push_back(VertexPositionColor(v, c));
+    }
+
+    // Origin
+    vertices.push_back(VertexPositionColor(g_XMZero, Colors::Red));
 
     m_batch->DrawPoints(vertices);
 
